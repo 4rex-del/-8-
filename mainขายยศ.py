@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import json, os, datetime
 
 from myserver import server_on
@@ -264,12 +265,43 @@ async def on_interaction(interaction: discord.Interaction):
         view = HistoryView(user_data, interaction.user)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
+# ------------------- Add Money Command -------------------
+@bot.tree.command(name="addmoney", description="เพิ่มเงินให้ผู้ใช้")
+@app_commands.describe(user="เลือกผู้ใช้ที่จะเพิ่มเงิน", amount="จำนวนเงินที่จะเพิ่ม")
+async def addmoney(interaction: discord.Interaction, user: discord.Member, amount: int):
+    if interaction.user.id != OWNER_ID:
+        await interaction.response.send_message("❌ คุณไม่มีสิทธิ์ใช้คำสั่งนี้", ephemeral=True)
+        return
+
+    if amount <= 0:
+        await interaction.response.send_message("❌ จำนวนเงินต้องมากกว่า 0", ephemeral=True)
+        return
+
+    add_balance(user.id, amount)
+
+    log_channel = bot.get_channel(PAYMENT_LOG_CHANNEL_ID)
+    if log_channel:
+        embed_log = discord.Embed(title="💵 เติมเงินให้ผู้ใช้", color=discord.Color.gold())
+        embed_log.add_field(name="ผู้ใช้", value=user.mention, inline=False)
+        embed_log.add_field(name="จำนวน", value=f"{amount} บาท", inline=True)
+        embed_log.add_field(name="ผู้เติม", value=interaction.user.mention, inline=True)
+        embed_log.add_field(name="เวลา", value=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), inline=False)
+        embed_log.set_thumbnail(url=user.display_avatar.url)
+        await log_channel.send(embed=embed_log)
+
+    embed = discord.Embed(
+        title="✅ เพิ่มเงินสำเร็จ",
+        description=f"ได้เพิ่ม {amount} บาท ให้กับ {user.mention}\nยอดเงินปัจจุบัน: {get_balance(user.id)} บาท",
+        color=discord.Color.green()
+    )
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+# ------------------- Bot Ready -------------------
 @bot.event
 async def on_ready():
-    # ตั้งสถานะ Streaming
     streaming = discord.Streaming(
         name="พร้อมใช้งาน💜",
-        url="https://discord.gg/v2NyEFpjrC"  # ตัวอย่าง URL
+        url="https://discord.gg/v2NyEFpjrC"
     )
     await bot.change_presence(activity=streaming)
 
@@ -287,10 +319,8 @@ async def on_ready():
         description="`🧧 ส่งลิ้งซองทรูมันนี่เพื่อเติมเงิน`\n`🛒 ซื้อยศได้ตลอด 24 ชั่วโมง`\n`💙ขอบคุณที่มาอุดหนุนร้านเรา💙`",
         color=discord.Color.blue()
     )
-    
-    # เพิ่มรูปใน embed
-    embed.set_image(url="https://media.discordapp.net/attachments/1414140348468559922/1414160989804302456/1240_20250907150943.png?ex=68be8f8d&is=68bd3e0d&hm=9f92ce6e20a89eee259ac8efbe84cf1699f42ab4531f88b1f59b64509473f03f&=&format=webp&quality=lossless&width=770&height=577")
-    
+    embed.set_image(url="https://media.discordapp.net/attachments/1414140348468559922/1414160989804302456/1240_20250907150943.png")
+
     await channel.send(embed=embed, view=MainShopView(guild))
 
 server_on()
