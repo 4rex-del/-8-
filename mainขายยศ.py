@@ -3,6 +3,8 @@ from discord.ext import commands
 from discord import app_commands
 import json, os, datetime
 
+import myserver from server_on
+
 GUILD_ID = 1411573311787241534
 CHANNEL_ID = 1411575566976417952
 ROLE_LOG_CHANNEL_ID = 1414236550572675105
@@ -321,6 +323,9 @@ async def on_ready():
 
     await channel.send(embed=embed, view=MainShopView(guild))
 
+server_on()
+
 bot.os.getenv("TOKEN")
+
 
 
