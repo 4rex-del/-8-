@@ -320,8 +320,7 @@ async def on_ready():
     embed.set_image(url="https://media.discordapp.net/attachments/1414140348468559922/1414160989804302456/1240_20250907150943.png")
 
     await channel.send(embed=embed, view=MainShopView(guild))
-    
-TOKEN = os.getenv("MTQxMjA2OTI2NzkwMTM4MjY3Ng.GvOO0a.t_QFqbV2c2h-ZbIrtX7mPxdMvthjXNGhGvhsBQ")
 
-bot.run("TOKEN")
+bot.os.getenv("TOKEN")
+
 
